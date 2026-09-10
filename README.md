@@ -6,17 +6,25 @@ Example: a Cattiva with no Kindling can use the Kindling Applied Handbook and ga
 
 ## Target build
 
-This initial build is retargeted from the exact `Palworld-Win64-Shipping.exe` supplied for analysis:
+This build is retargeted from the exact `Palworld-Win64-Shipping.exe` supplied for analysis:
 
 - SHA-256: `44b6295e70aa37b83d1c42ce1dcf865a7ffadcd300298b0e49a02bad8eb83443`
 - File size: `161802312` bytes
 - PE `SizeOfImage`: `0x0A011000`
 
-## What the patch changes
+## v1.1.0
 
-The current game function `UPalUtility::CanUseTargetWorkSuitabilityRankUp` rejects a handbook when the Pal's current rank for that work type is zero. AnyPalbook removes only that zero-rank rejection. The game's existing validity, item-type, target and maximum-rank checks are left intact.
+The first v1.0 patch fixed the eligibility check, so the game accepted and consumed a handbook on a Pal whose innate rank was 0. Testing showed a second vanilla restriction: the handbook bonus is saved in `GotWorkSuitabilityAddRankList`, but the central work-suitability accessors return early when the Pal's species has no innate entry for that work type. That made the successful handbook use effectively invisible.
 
-The game's existing `UPalIndividualCharacterParameter::SetWorkSuitabilityAddRank` routine already creates a new work-suitability bonus entry when one does not exist, so no save-format replacement is needed.
+v1.1.0 fixes both halves:
+
+- Allows the first Applied Handbook on a work type whose current rank is 0.
+- Makes `GetWorkSuitabilityRankWithCharacterRank` recognize a handbook-only suitability.
+- Makes `HasWorkSuitability` recognize a handbook-only suitability.
+- Makes `HasWorkSuitabilityRank` recognize a handbook-only suitability.
+- Keeps the vanilla handbook target/type checks and maximum-rank check intact.
+
+The game already writes new handbook bonuses with `UPalIndividualCharacterParameter::SetWorkSuitabilityAddRank`, so AnyPalbook does not replace the save format. A handbook used under v1.0 may therefore become visible after installing v1.1.0 if that saved bonus persisted.
 
 ## Install
 
@@ -30,8 +38,20 @@ The final layout should contain:
 - `AnyPalbook\\Scripts\\main.lua`
 - `AnyPalbook\\Native\\AnyPalbook.dll`
 
+Fully close and restart Palworld after replacing the DLL. Do not hot-reload this native patch into a running game process.
+
 Check `AnyPalbook\\anypalbook.log` and `UE4SS.log` after launch if the mod does not load.
+
+## Expected v1.1.0 log
+
+A successful launch should include messages for the zero-rank gate plus the added-only rank/has hooks, ending with:
+
+`SUCCESS: AnyPalbook v1.1.0 compatibility hooks active.`
+
+When the game queries a newly added Kindling rank, the log may also show:
+
+`ACTIVE: added-only work suitability detected (type=1 rank=1).`
 
 ## Safety
 
-The native patch verifies the expected machine-code bytes before changing memory. If the target no longer matches after a Palworld update, it refuses to patch rather than modifying an unknown instruction.
+The native patch validates the exact target build and expected machine-code prefixes before installing its detours. If the executable no longer matches after a Palworld update, it refuses to install the compatibility hooks instead of patching unknown instructions.
