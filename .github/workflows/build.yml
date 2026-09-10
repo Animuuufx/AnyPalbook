@@ -1,0 +1,46 @@
+name: Build AnyPalbook
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'Native/src/**'
+      - '.github/workflows/build.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build x64 DLL
+        shell: cmd
+        run: |
+          for /f "usebackq tokens=*" %%i in (`"%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe" -latest -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath`) do set VSROOT=%%i
+          call "%VSROOT%\VC\Auxiliary\Build\vcvars64.bat"
+          cl /nologo /std:c++17 /O2 /MT /LD Native\src\AnyPalbook.cpp /link /OUT:Native\AnyPalbook.dll
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: AnyPalbook-dll
+          path: Native/AnyPalbook.dll
+
+      - name: Commit compiled DLL
+        shell: pwsh
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add Native/AnyPalbook.dll
+          if (git diff --cached --quiet) {
+            Write-Host "Compiled DLL is unchanged."
+            exit 0
+          }
+          git commit -m "Build AnyPalbook.dll"
+          git push
