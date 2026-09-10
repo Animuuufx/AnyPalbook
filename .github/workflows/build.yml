@@ -43,4 +43,5 @@ jobs:
             exit 0
           }
           git commit -m "Build AnyPalbook.dll"
+          git pull --rebase origin main
           git push
