@@ -8,6 +8,10 @@ on:
       - '.github/workflows/build.yml'
   workflow_dispatch:
 
+concurrency:
+  group: anypalbook-windows-build
+  cancel-in-progress: true
+
 permissions:
   contents: write
 
@@ -26,18 +30,29 @@ jobs:
           call "%VSROOT%\VC\Auxiliary\Build\vcvars64.bat"
           cl /nologo /std:c++17 /O2 /MT /LD Native\src\AnyPalbook.cpp /link /OUT:Native\AnyPalbook.dll
 
+      - name: Package install-ready mod
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path dist/AnyPalbook/Scripts, dist/AnyPalbook/Native | Out-Null
+          Copy-Item Scripts/main.lua dist/AnyPalbook/Scripts/main.lua
+          Copy-Item Native/AnyPalbook.dll dist/AnyPalbook/Native/AnyPalbook.dll
+          New-Item -ItemType File -Force -Path dist/AnyPalbook/enabled.txt | Out-Null
+          Compress-Archive -Path dist/AnyPalbook -DestinationPath dist/AnyPalbook-v1.3.0-built.zip -Force
+
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
           name: AnyPalbook-dll
-          path: Native/AnyPalbook.dll
+          path: |
+            Native/AnyPalbook.dll
+            dist/AnyPalbook-v1.3.0-built.zip
 
       - name: Commit compiled DLL
         shell: pwsh
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add Native/AnyPalbook.dll
+          git add Native/AnyPalbook.dll dist/AnyPalbook-v1.3.0-built.zip
           if (git diff --cached --quiet) {
             Write-Host "Compiled DLL is unchanged."
             exit 0
