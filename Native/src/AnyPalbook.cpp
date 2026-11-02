@@ -255,13 +255,13 @@ static bool __fastcall hook_has_work_rank(void* individual_parameter,
     }
 
     const int rank = effective_rank_with_added_only(individual_parameter, work, 1, 1);
-    return rank >= required_rank;
+    return rank > 0 && rank >= required_rank;
 }
 
 static bool apply_anypalbook_patch()
 {
     if (g_initialized) {
-        log_line("AnyPalbook v1.1.0 already initialized.");
+        log_line("AnyPalbook v1.3.0 already initialized.");
         return true;
     }
 
@@ -284,7 +284,7 @@ static bool apply_anypalbook_patch()
         return false;
     }
 
-    log_line("AnyPalbook v1.1.0 initializing.");
+    log_line("AnyPalbook v1.3.0 initializing.");
     log_line("Palworld module base=%p SizeOfImage=0x%X", g_palworld_base, nt->OptionalHeader.SizeOfImage);
 
     if (nt->OptionalHeader.SizeOfImage != kAnalyzedSizeOfImage) {
@@ -372,7 +372,7 @@ static bool apply_anypalbook_patch()
     }
 
     g_initialized = true;
-    log_line("SUCCESS: AnyPalbook v1.1.0 compatibility hooks active.");
+    log_line("SUCCESS: AnyPalbook v1.3.0 compatibility hooks active.");
     return true;
 }
 
