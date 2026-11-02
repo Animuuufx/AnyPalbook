@@ -1,5 +1,5 @@
 local MOD = "AnyPalbook"
-local VERSION = "1.2.0"
+local VERSION = "1.3.0"
 
 local function log(msg)
     print(string.format("[%s v%s] %s\n", MOD, VERSION, tostring(msg)))
