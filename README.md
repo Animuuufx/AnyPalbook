@@ -8,15 +8,17 @@ Example: a Cattiva with no Kindling can use the Kindling Applied Handbook and ga
 
 This build is retargeted from the exact `Palworld-Win64-Shipping.exe` supplied for analysis:
 
-- SHA-256: `44b6295e70aa37b83d1c42ce1dcf865a7ffadcd300298b0e49a02bad8eb83443`
+- SHA-256 (current upload): `e590b5e7bfaa3fea40fab1a02cc72c8fc5fd6f8631ef2308e95ac56c25195837`
+- Previous analyzed executable SHA-256: `44b6295e70aa37b83d1c42ce1dcf865a7ffadcd300298b0e49a02bad8eb83443`
+- The current upload was checked locally: image size and all four installed patch-site signatures matched; full gameplay remains untested.
 - File size: `161802312` bytes
 - PE `SizeOfImage`: `0x0A011000`
 
-## v1.1.0
+## v1.3.0 (2026-11-01 retarget)
 
 The first v1.0 patch fixed the eligibility check, so the game accepted and consumed a handbook on a Pal whose innate rank was 0. Testing showed a second vanilla restriction: the handbook bonus is saved in `GotWorkSuitabilityAddRankList`, but the central work-suitability accessors return early when the Pal's species has no innate entry for that work type. That made the successful handbook use effectively invisible.
 
-v1.1.0 fixes both halves:
+v1.3.0 fixes both halves:
 
 - Allows the first Applied Handbook on a work type whose current rank is 0.
 - Makes `GetWorkSuitabilityRankWithCharacterRank` recognize a handbook-only suitability.
@@ -24,7 +26,7 @@ v1.1.0 fixes both halves:
 - Makes `HasWorkSuitabilityRank` recognize a handbook-only suitability.
 - Keeps the vanilla handbook target/type checks and maximum-rank check intact.
 
-The game already writes new handbook bonuses with `UPalIndividualCharacterParameter::SetWorkSuitabilityAddRank`, so AnyPalbook does not replace the save format. A handbook used under v1.0 may therefore become visible after installing v1.1.0 if that saved bonus persisted.
+The game already writes new handbook bonuses with `UPalIndividualCharacterParameter::SetWorkSuitabilityAddRank`, so AnyPalbook does not replace the save format. A handbook used under v1.0 may therefore become visible after installing v1.3.0 if that saved bonus persisted.
 
 ## Install
 
@@ -42,11 +44,11 @@ Fully close and restart Palworld after replacing the DLL. Do not hot-reload this
 
 Check `AnyPalbook\\anypalbook.log` and `UE4SS.log` after launch if the mod does not load.
 
-## Expected v1.1.0 log
+## Expected v1.3.0 log
 
 A successful launch should include messages for the zero-rank gate plus the added-only rank/has hooks, ending with:
 
-`SUCCESS: AnyPalbook v1.1.0 compatibility hooks active.`
+`SUCCESS: AnyPalbook v1.3.0 compatibility hooks active.`
 
 When the game queries a newly added Kindling rank, the log may also show:
 
